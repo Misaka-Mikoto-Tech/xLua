@@ -184,13 +184,19 @@ public class LuaCallCs : MonoBehaviour {
         function demo()
             --new C#对象
             local newGameObj = CS.UnityEngine.GameObject()
-            local newGameObj2 = CS.UnityEngine.GameObject('helloworld')
+            local objA = CS.UnityEngine.GameObject.Find('Main Camera')
+            local compA = newGameObj:GetComponent('Transform')
+
+if true then return end
+            local newGameObj2 = CS.UnityEngine.GameObject('helloworld')         
             print(newGameObj, newGameObj2)
-        
+
             --访问静态属性，方法
             local GameObject = CS.UnityEngine.GameObject
             print('UnityEngine.Time.deltaTime:', CS.UnityEngine.Time.deltaTime) --读静态属性
+
             CS.UnityEngine.Time.timeScale = 0.5 --写静态属性
+
             print('helloworld', GameObject.Find('helloworld')) --静态方法调用
 
             --访问成员属性，方法
@@ -199,6 +205,7 @@ public class LuaCallCs : MonoBehaviour {
             testobj.DMF = 1024--设置成员属性
             print(testobj.DMF)--读取成员属性
             testobj:DMFunc()--成员方法
+
 
             --基类属性，方法
             print(DrivenClass.BSF)--读基类静态属性
@@ -287,7 +294,7 @@ public class LuaCallCs : MonoBehaviour {
            print('------------------------------------------------------')
            demo()
        end)
-       assert(coroutine.resume(co))
+       --assert(coroutine.resume(co))
     ";
 
     // Use this for initialization

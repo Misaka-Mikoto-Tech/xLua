@@ -857,6 +857,17 @@ namespace XLua
         }
 
         //meta: -4, method:-3, getter: -2, setter: -1
+        /// <summary>
+        /// 此函数创建一个名称为 type 的 metatable, C# 与 lua 之间的对象都被设置为对应的 metatable
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="L"></param>
+        /// <param name="translator"></param>
+        /// <param name="meta_count"></param>
+        /// <param name="method_count"></param>
+        /// <param name="getter_count"></param>
+        /// <param name="setter_count"></param>
+        /// <param name="type_id"></param>
         public static void BeginObjectRegister(Type type, RealStatePtr L, ObjectTranslator translator, int meta_count, int method_count, int getter_count,
             int setter_count, int type_id = -1)
         {
@@ -873,7 +884,11 @@ namespace XLua
                     LuaAPI.lua_pop(L, 1);
                     LuaAPI.luaL_newmetatable(L, type.FullName);
                 }
+
+                string str = LuaAPI.xlua_tostring(L, -1);
+                UnityEngine.Debug.Log("BeginObjectRegister, " + type.ToString() + " metatable:" + str);
             }
+
             LuaAPI.lua_pushlightuserdata(L, LuaAPI.xlua_tag());
             LuaAPI.lua_pushnumber(L, 1);
             LuaAPI.lua_rawset(L, -3);
@@ -1070,6 +1085,17 @@ namespace XLua
             LuaAPI.lua_rawset(L, idx);
         }
 
+        /// <summary>
+        /// 此函数创建从 CS 开始的级联 table,用于名称查找, 找到 table 后可以调用静态方法以及构造方法
+        /// 若此 table 被执行（ex. CS.UnityEngine.GameObject()）, 会执行 _call 方法, 然后执行相应的 _CreateInstance 方法， 
+        /// 此方法会 new 对象，并根据类型找到 metatable(BeginObjectRegister创建)，将对象的 lua_ref 得到的 id 以及 metatable id 一并传递到 lua
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="L"></param>
+        /// <param name="creator"></param>
+        /// <param name="class_field_count"></param>
+        /// <param name="static_getter_count"></param>
+        /// <param name="static_setter_count"></param>
 #if GEN_CODE_MINIMIZE
         public static void BeginClassRegister(Type type, RealStatePtr L, CSharpWrapper creator, int class_field_count,
             int static_getter_count, int static_setter_count)
@@ -1081,7 +1107,11 @@ namespace XLua
 #if GEN_CODE_MINIMIZE
             ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
 #endif
+            // 此时 top 为1，idx 1 是 type 全路径字符串
             LuaAPI.lua_createtable(L, 0, class_field_count);
+
+            string str = LuaAPI.xlua_tostring(L, -1);
+            UnityEngine.Debug.Log("BeginClassRegister, " + (type == null ? "null": type.ToString()) + " metatable:" + str);
 
             int cls_table = LuaAPI.lua_gettop(L);
 
@@ -1262,6 +1292,7 @@ namespace XLua
 
             LuaAPI.xlua_pushasciistring(L, path[path.Count -1]);
             LuaAPI.lua_pushvalue(L, cls_table);
+            //当 type 为 GameObject 时， -3 为 CS.UnityEngine, 此 table 由 lua 创建，因此 lua 可以通过 rawget 获取 GameObject 表
             LuaAPI.lua_rawset(L, -3);
             LuaAPI.lua_pop(L, 1);
         }

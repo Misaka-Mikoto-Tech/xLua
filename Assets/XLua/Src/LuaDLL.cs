@@ -565,5 +565,16 @@ namespace XLua.LuaDLL
             xlua_set_csharp_wrapper_caller(Marshal.GetFunctionPointerForDelegate(wrapper_caller));
         }
 #endif
+        [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr luaL_tolstring(IntPtr L, int idx, out long len);
+
+        public static string xlua_tostring(IntPtr L, int idx)
+        {
+            long size = 0;
+            IntPtr p = luaL_tolstring(L, idx, out size);
+            string str = Marshal.PtrToStringAnsi(p);
+            lua_pop(L, 1);
+            return str;
+        }
     }
 }

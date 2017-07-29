@@ -859,7 +859,7 @@ namespace XLua
                 }
                 else
                 {
-                    LuaAPI.lua_pushvalue(L, -1);
+                    LuaAPI.lua_pushvalue(L, -1); // metatable
                     type_id = LuaAPI.luaL_ref(L, LuaIndexes.LUA_REGISTRYINDEX);
                     LuaAPI.lua_pushnumber(L, type_id);
                     LuaAPI.xlua_rawseti(L, -2, 1);
@@ -1061,6 +1061,9 @@ namespace XLua
             }
 
             index = addObject(o, is_valuetype, is_enum);
+
+            // 在 lua 端创建一个 userdata, 强转为 int *, 内容为 index, 并设置此 userdata.metatable 为 type_id 对应的 ref 指向的 (meta)table
+            // cacheRef 用来快速通过 index 找到对应的 userdata(仅被 C# 调用用来快速检测对象是否存在)
             LuaAPI.xlua_pushcsobj(L, index, type_id, needcache, cacheRef);
         }
 
