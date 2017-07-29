@@ -22,7 +22,7 @@
 
 - 对于 lua 代码中以 `CS.` 开头的类型查找使用通用查找逻辑，如果没有缓存会调用 `import_type` 进行查找，如果还是没有找到则创建一个obj，其中有一个字段(.fqn),并且设置 metatable 为通用查找 table，如果找到了(loaded_type存在或者调用delayloader或者reflectionWrap成功)则返回true，如果没有找到则lua会创建一个table，并且其.fqn字段是其父类路径，并且返回，下一级路径查找时object就是之前创建的table，传递给 `import_type` 的路径是与 .fqn 组合起来的全路径
 
-- `import_type` 函数如果发现类型没有会尝试加载类型（调用生成的代码或者执行反射），加载过程中分两步，分别为注册 Object 和 注册 Class：
+- `import_type` 函数如果没有找到类型会尝试加载类型（调用生成的代码或者执行反射），加载过程中分两步，分别为注册 Object 和 注册 Class：
 
 > 1. 注册 Object，创建一个以类型名为 key 的 metatable① 注册到全局表，将类型所有的实例方法及回调函数设置为此 table 的 key value。
 > 2. 注册 Class, 创建一个table，把自己以自己的名称为 key 设置到包含 .fqn 字段的以 `CS.` 开头的全路径对应的末级 table② 中(如果有 nested class 就不是末级了)，将所有的静态方法和构造函数对应的回调函数设置进去。
