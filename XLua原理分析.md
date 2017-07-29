@@ -1,4 +1,4 @@
-﻿# 本文档为阅读 xlua 源码的笔记，希望可以对有需要的人提供帮助
+# 本文档为阅读 xlua 源码的笔记，希望可以对有需要的人提供帮助
 
 - 类型的数据及getter,setter存储在lua function的upvalue里
 - 如果没有生成代码，那么会直接修改IL
@@ -27,6 +27,6 @@
 > 1. 注册 Object，创建一个以类型名为 key 的 metatable 注册到全局表，将类型所有的实例方法及回调函数设置为此 table 的 key value。
 > 2. 注册 Class, 创建一个table，把自己以自己的名称为 key 设置到包含 .fqn 字段的以 `CS.` 开头的全路径对应的末级 table 中(如果有 nested class 就不是末级了)，将所有的静态方法和构造函数对应的回调函数设置进去。
 
->> `例如： 注册 GameObject 类型的 Class 时会在 CS.UnityEngine 表中增加一个字段名为 **GameObject**, 指向刚创建的 table`
+>> `例如： 注册 GameObject 类型的 Class 时会在 CS.UnityEngine 表中增加一个字段, 名为 `GameObject`, 指向刚创建的 table`
 
 - xlua 对目标的对象方法查找和类方法查找走的是不同路径，对象查找是通过 metatable 来完成的，而类方法走的则是从 `CS.` 开始的多级 table，通过类方法找到某个类型(table)后，如果执行了括号操作, 将会调用 `_call` 字段对应的方法，`_call` 方法在在C#中一般被赋值为 _CreateInstance 方法，调用此方法会创建对象，并通过设置 metatable 和 objid 的方式传递给 lua 作为 userdata保存起来 => (*((int *)userdata) = objid
