@@ -1266,6 +1266,7 @@ namespace XLua
 
             List<string> path = getPathOfType(type);
 
+            // 逐级判断从 CS 为最顶级的类型或 namespace 对应的 table 是否存在(这些 table 都是 LuaEvn.cs 里写的那一段 lua 代码生成的)
             for (int i = 0; i < path.Count - 1; ++i)
             {
                 LuaAPI.xlua_pushasciistring(L, path[i]);

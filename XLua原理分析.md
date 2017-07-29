@@ -19,7 +19,11 @@
 - 已经存在的对象在C#端和lua端各有一个表进行存储，C#端是reverseMap(obj, int), lua端是cacheRef(int, userdata)
 
 - xlua 存储对象是使用的 userdata，userdata指针就存储了一个值，是C#里的translator.objects对应的一个编号，C#根据这个编号去取对应的对象，lua里方法调用时把self(userdata)压栈,因此C#中可以取到对应的值
-- 对于lua中CS开头的目标查找，如果没有缓存会调用import_type进行查找，如果还是没有找到则创建一个obj，其中只有一个字段(.fqn),并且设置metatable，如果找到了(loaded_type存在或者调用delayloader或者reflectionWrap成功)则返回TRUE，并且此时lua中一定有此类型对应的metatable,也就是说在xlua的路径查找过程中，如果没有找到则lua会创建一个table，并且其.fqn字段是其父类路径，并且返回，下一级路径查找时object就是之前创建的table，传递给import_type的路径是与 .fqn 组合起来的全路径
+
+- 对于lua中CS开头的类型查找使用通用查找逻辑，如果没有缓存会调用import_type进行查找，如果还是没有找到则创建一个obj，其中只有一个字段(.fqn),并且设置metatable为通用查找table，如果找到了(loaded_type存在或者调用delayloader或者reflectionWrap成功)则返回True，如果没有找到则lua会创建一个table，并且其.fqn字段是其父类路径，并且返回，下一级路径查找时object就是之前创建的table，传递给import_type的路径是与 .fqn 组合起来的全路径
+
+- import_type 函数如果发现类型没有会尝试加载类型，加载过程中会注册　Object 和 Class 以及对应的函数，其中 Class 注册完成后会把自己以自己的名称为key set 到包含 .fqn 字段的 table 中，Object 注册后则把自己注册到全局 metatable 表中去
 
 - C#注册一个类的过程，首先是创建一个 metatable,然后注册一堆的方法（registerObject），然后开始注册Class，注册Class的过程是创建一个table，这个table注册一堆方法和 _index, _newIndex, 然后把注册的方法都设置为upvalue,然后将这个table 设置为Type的全路径table的一个字段，比如设置 GameObject 时会在CS.UnityEngine 表中增加一个字段 GameObject,指向此table
+
 - xlua wrap 目标的对象方法查找和类方法查找走的是不同路径，对象查找是通过metatable来完成的，而类方法走的则是从CS开始的多级table，而通过类方法找到某个类型(table)后，调用 _call 方法，在C#中执行 _CreateInstance 方法，创建对象，并通过设置metatable的方式传递给lua作为 userdata保存起来
