@@ -886,7 +886,7 @@ namespace XLua
                 }
 
                 string str = LuaAPI.xlua_tostring(L, -1);
-                UnityEngine.Debug.Log("BeginObjectRegister, " + type.ToString() + " metatable:" + str);
+                // UnityEngine.Debug.Log("BeginObjectRegister, " + type.ToString() + " metatable:" + str);
             }
 
             LuaAPI.lua_pushlightuserdata(L, LuaAPI.xlua_tag());
@@ -1111,7 +1111,7 @@ namespace XLua
             LuaAPI.lua_createtable(L, 0, class_field_count);
 
             string str = LuaAPI.xlua_tostring(L, -1);
-            UnityEngine.Debug.Log("BeginClassRegister, " + (type == null ? "null": type.ToString()) + " metatable:" + str);
+            // UnityEngine.Debug.Log("BeginClassRegister, " + (type == null ? "null": type.ToString()) + " metatable:" + str);
 
             int cls_table = LuaAPI.lua_gettop(L);
 

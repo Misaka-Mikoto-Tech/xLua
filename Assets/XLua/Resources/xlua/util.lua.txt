@@ -7,25 +7,35 @@
 local unpack = unpack or table.unpack
 
 local function async_to_sync(async_func, callback_pos)
-    return function(...)
+    return function(...) -- CS.UnityEngine.WaitForSeconds(3)
         local _co = coroutine.running() or error ('this function must be run in coroutine')
         local rets
         local waiting = false
-        local function cb_func(...)
+        local function cb_func(...) -- C# 端的函数执行完毕调用此回调后才执行 resume
+            print(">>>4")
             if waiting then
+                print(">>>5")
+                -- 会立刻去执行 co,直到对方 coroutine.yield 或者 return
                 coroutine.resume(_co, ...)
+                print(">>>8")
             else
+                print(">>>6")
                 rets = {...}
             end
+            print(">>>7")
         end
         local params = {...}
+        -- 把 cb_func 放在参数尾部
         table.insert(params, callback_pos or (#params + 1), cb_func)
+        -- 执行 async_yield_return，两个参数, 第二个参数是C#执行完后的回调
+        print(">>>1")
         async_func(unpack(params))
         if rets == nil then
             waiting = true
-            rets = {coroutine.yield()}
+            print(">>>2")
+            rets = {coroutine.yield()} -- 执行后立刻释放控制权
         end
-        
+        print(">>>3")
         return unpack(rets)
     end
 end
