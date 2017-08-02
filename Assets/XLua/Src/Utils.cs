@@ -28,6 +28,7 @@ namespace XLua
     {
         public static bool LoadField(RealStatePtr L, int idx, string field_name)
         {
+            idx = idx > 0 ? idx : LuaAPI.lua_gettop(L) + idx + 1;// abs of index
             LuaAPI.xlua_pushasciistring(L, field_name);
             LuaAPI.lua_rawget(L, idx);
             return !LuaAPI.lua_isnil(L, -1);
@@ -1348,8 +1349,12 @@ namespace XLua
                 if (parameterType.IsGenericParameter)
                 {
                     var parameterConstraints = parameterType.GetGenericParameterConstraints();
-                    if (parameterConstraints.Length == 0 || !parameterConstraints[0].IsClass())
-                        return false;
+                    if (parameterConstraints.Length == 0) return false;
+                    foreach (var parameterConstraint in parameterConstraints)
+                    {
+                        if (!parameterConstraint.IsClass || (parameterConstraint == typeof(ValueType)))
+                            return false;
+                    }
                     hasValidGenericParameter = true;
                 }
             }
