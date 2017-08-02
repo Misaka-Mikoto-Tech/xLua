@@ -30,3 +30,58 @@
 >> `例如： 注册 GameObject 类型的 Class 时会在 CS.UnityEngine 表中增加一个字段, 名为 `GameObject`, 指向刚创建的 table②`
 
 - xlua 对目标的对象方法查找和类方法查找走的是不同路径，对象查找是通过 metatable① 来完成的，而类方法走的则是从 `CS.` 开始的多级 table②，通过类方法找到某个类型(table)后，如果执行了括号操作, 将会调用 `_call` 字段对应的方法，`_call` 方法在在C#中一般被赋值为 _CreateInstance 方法，调用此方法会创建对象，并通过设置 metatable 和 objid 的方式传递给 lua 作为 userdata保存起来 => (*((int *)userdata) = objid
+ 
+
+-----
+## Inject HotFix Opcode的流程分析
+- 所有需要注入的函数都需要有与之定义对应的 delegatebridge 里的方法匹配用来把参数传递给lua并call，比如非静态无参方法使用此方法 `void __Gen_Delegate_Imp15(object p0)`， 生成代码时会把标记为 hotfix 的类里面的所有方法都生成对应签名的wrap方法, DelegateBridge.GetDelegateByType 方法没有列出来的都是为hotfix生成的
+
+- 函数体被加入一个 DelegateBridge 类型的局部变量
+
+- 定义一个独一无二名字的 DelegateBridge 类型的静态字段，名字规则 `__Hotfix{overload}_{method_name}`, 每个函数最多支持100个重载，
+
+- 遍历每一个ret，在之前都注入代码，判断某变量值是否为空，如果为空就执行逻辑
+
+-  self 参数的类型：如果是StateFull，需要luatable类型的参数，否则如果是值类型那么需要与之匹配的值类型，否则全部是 System.Object
+
+-  将静态字段复制到局部变量，如果此变量不为空，就压栈 self 以及所有参数，call 对应的方法 `__Gen_Delegate_Imp15`, 最后直接 ret
+-  附IL
+```
+  .method private hidebysig instance void Update() cil managed
+{
+    .maxstack 3
+    .locals init (
+        [0] int32 num,
+        [1] class XLua.DelegateBridge bridge) // 使用一个局部变量
+    
+    // 这是添加的一个当前类的 Field,类型与上面变量相同
+    L_0000: ldsfld class XLua.DelegateBridge HotfixTest::__Hotfix0_Update
+    L_0005: stloc bridge   // 将字段复制到局部变量
+    L_0009: ldloc bridge   // 压栈局部变量
+    L_000d: brfalse L_001d // 判断此变量是否为 null
+    L_0012: ldloc bridge
+    L_0016: ldarg.0   // 压栈 this
+    // 调用参数与 Update 匹配的 wrap 函数
+    L_0017: call instance void XLua.DelegateBridge::__Gen_Delegate_Imp15(object)
+    L_001c: ret  // 直接跳走，不再执行原有逻辑
+    L_001d: ldarg.0      // 原始函数入口
+    L_001e: dup 
+    L_001f: ldfld int32 HotfixTest::tick
+    L_0024: ldc.i4.1 
+    L_0025: add 
+    L_0026: dup 
+    L_0027: stloc.0 
+    L_0028: stfld int32 HotfixTest::tick
+    L_002d: ldloc.0 
+    L_002e: ldc.i4.s 50
+    L_0030: rem 
+    L_0031: brtrue L_0050
+    L_0036: ldstr ">>>>>>>>Update in C#, tick = "
+    L_003b: ldarg.0 
+    L_003c: ldfld int32 HotfixTest::tick
+    L_0041: box int32
+    L_0046: call string [mscorlib]System.String::Concat(object, object)
+    L_004b: call void [UnityEngine]UnityEngine.Debug::Log(object)
+    L_0050: ret 
+}
+```
