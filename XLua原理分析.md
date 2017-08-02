@@ -40,9 +40,11 @@
 
 - 定义一个独一无二名字的 DelegateBridge 类型的静态字段，名字规则 `__Hotfix{overload}_{method_name}`, 每个函数最多支持100个重载，
 
-- 遍历每一个ret，在之前都注入代码，判断某变量值是否为空，如果为空就执行逻辑
+- 如果是构造函数则遍历每一个ret，在之前都注入代码，否则在函数体第一条指令前插入
 
--  self 参数的类型：如果是StateFull，需要luatable类型的参数，否则如果是值类型那么需要与之匹配的值类型，否则全部是 System.Object
+- 把静态字段复制到局部变量，判断变量值是否为空，如果不为空就执行 hotfix 逻辑
+
+-  self/this 参数的类型：如果是StateFull，需要luatable类型的参数，否则如果是值类型那么需要与之匹配的值类型，否则全部是 System.Object
 
 -  将静态字段复制到局部变量，如果此变量不为空，就压栈 self 以及所有参数，call 对应的方法 `__Gen_Delegate_Imp15`, 最后直接 ret
 -  附IL
