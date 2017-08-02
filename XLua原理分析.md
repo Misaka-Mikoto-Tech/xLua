@@ -1,5 +1,6 @@
 # 本文档为阅读 xlua 源码的笔记，希望可以对有需要的人提供帮助
 
+## lua 与 C# 交互过程分析
 - 类型的数据及getter,setter存储在lua function的upvalue里
 - 如果没有生成代码，那么会直接修改IL
 - 如果生成了代码，有代码生成的会被延迟加载并且注册所有的函数
@@ -33,7 +34,7 @@
  
 
 -----
-## Inject HotFix Opcode的流程分析
+## Inject HotFix Opcode的原理分析
 - 所有需要注入的函数都需要有与之定义对应的 delegatebridge 里的方法匹配用来把参数传递给lua并call，比如非静态无参方法使用此方法 `void __Gen_Delegate_Imp15(object p0)`， 生成代码时会把标记为 hotfix 的类里面的所有方法都生成对应签名的wrap方法, DelegateBridge.GetDelegateByType 方法没有列出来的都是为hotfix生成的
 
 - 函数体被加入一个 DelegateBridge 类型的局部变量
@@ -46,7 +47,9 @@
 
 -  self/this 参数的类型：如果是StateFull，需要luatable类型的参数，否则如果是值类型那么需要与之匹配的值类型，否则全部是 System.Object
 
--  将静态字段复制到局部变量，如果此变量不为空，就压栈 self 以及所有参数，call 对应的方法 `__Gen_Delegate_Imp15`, 最后直接 ret
+-  处理泛型参数和返回值
+
+-  压栈 self 以及所有参数，call 对应的方法 `__Gen_Delegate_Imp15`, 最后直接 ret
 -  附IL
 ```
   .method private hidebysig instance void Update() cil managed
