@@ -90,3 +90,15 @@
     L_0050: ret 
 }
 ```
+
+## xlua.hotfix 函数执行逻辑
+- 调用 xlua.hotfix 会执行C#里的XLuaAccess方法100遍，找指定名称的字段或者属性，找到后就给它设置为lua函数的warpper（可能是一个 DelegateBridge）
+
+- 多个C#函数的重载都映射到同样的lua hotfix 函数，只是参数不一样
+
+- 如果使用了 IntKey, 那么执行 hotfix 时将不再执行100遍，因为它们有了严格的对应关系，但是由于IDE与发布时的代码可能不同，函数序号可能对应不起来，此问题的处理方案时映射文件动态下载。[官方文档对此问题的解释](https://github.com/Tencent/xLua/blob/master/Assets/XLua/Doc/hotfix.md#hotfix-flag)
+ 
+ 
+ 
+ ## 注意事项
+ - 一旦执行了 ==XLua/Hotfix Inject In Editor== 将不可再使用 vs 调试，但是出错时 unity ide 自身显示的出错行数还是正确的，原因是 Mono.Cecil 处理IL指令时会同时修改与之关联 mdb　文件，但 vs 使用的 pdb 文件并没有被同步修改

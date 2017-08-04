@@ -125,7 +125,7 @@ namespace XLua
 
     public partial class DelegateBridge : DelegateBridgeBase
     {
-        internal static DelegateBridge[] DelegateBridgeList = new DelegateBridge[0];
+        internal static DelegateBridge[] DelegateBridgeList = new DelegateBridge[0]; // 给 IntKey 类型的 hotfix 使用用来存储编号与 GenBridge 之间的映射关系
 
         internal static bool Gen_Flag = false;
 

@@ -187,7 +187,6 @@ public class LuaCallCs : MonoBehaviour {
             local objA = CS.UnityEngine.GameObject.Find('Main Camera')
             local compA = newGameObj:GetComponent('Transform')
 
-if true then return end
             local newGameObj2 = CS.UnityEngine.GameObject('helloworld')         
             print(newGameObj, newGameObj2)
 
@@ -299,6 +298,8 @@ if true then return end
 
     // Use this for initialization
     void Start () {
+        Debug.Log("GC.MaxGeneration:" + GC.MaxGeneration);
+        
         luaenv = new LuaEnv();
         luaenv.DoString(script);
     }
