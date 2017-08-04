@@ -101,4 +101,4 @@
  
  
  ## 注意事项
- - 一旦执行了 ==XLua/Hotfix Inject In Editor== 将不可再使用 vs 调试，但是出错时 unity ide 自身显示的出错行数还是正确的，原因是 Mono.Cecil 处理IL指令时会同时修改与之关联 mdb　文件，但 vs 使用的 pdb 文件并没有被同步修改
+ - 一旦执行了 **XLua/Hotfix Inject In Editor** 将不可再使用 vs 调试，但是出错时 unity ide 自身显示的出错行数还是正确的，原因是 Mono.Cecil 处理IL指令时会同时修改与之关联 mdb　文件，但 vs 使用的 pdb 文件并没有被同步修改
