@@ -87,7 +87,13 @@ local function loadpackage(...)
 end
 
 local function auto_id_map()
-    local hotfix_id_map = require 'hotfix_id_map'
+    local hotfix_id_map = loadfile('hotfix_id_map')
+    if hotfix_id_map == nil then
+        return false
+    else
+        hotfix_id_map = hotfix_id_map()
+    end
+    
     local org_hotfix = xlua.hotfix
     xlua.hotfix = function(cs, field, func)
         local map_info_of_type = hotfix_id_map[typeof(cs):ToString()]
@@ -106,6 +112,8 @@ local function auto_id_map()
             return org_hotfix(cs, field, func)
         end
     end
+    
+    return true
 end
 
 --和xlua.hotfix的区别是：这个可以调用原来的函数

@@ -605,6 +605,7 @@ namespace XLua
                     return LuaAPI.luaL_error(L, "can not get tostring in print:");
                 }
 
+                string colorStr = string.Empty;
                 for (int i = 1; i <= n; i++)
                 {
                     LuaAPI.lua_pushvalue(L, -1);  /* function to be called */
@@ -613,12 +614,21 @@ namespace XLua
                     {
                         return LuaAPI.lua_error(L);
                     }
-                    s += LuaAPI.lua_tostring(L, -1);
+                    string stri = LuaAPI.lua_tostring(L, -1);
 
-                    if (i != n) s += "\t";
+                    if (i == 1 && stri.Length > 2 && stri.StartsWith("#"))
+                        colorStr = stri.Substring(1);
+                    else
+                    {
+                        s += stri;
+                        if (i != n) s += "\t";
+                    }
 
                     LuaAPI.lua_pop(L, 1);  /* pop result */
                 }
+
+                if (!string.IsNullOrEmpty(colorStr))
+                    s = string.Format("<color={0}>{1}</color>", colorStr, s);
                 UnityEngine.Debug.Log("LUA: " + s);
                 return 0;
             }

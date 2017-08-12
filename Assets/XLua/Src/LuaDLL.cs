@@ -59,7 +59,8 @@ namespace XLua.LuaDLL
 
 		public static bool lua_isfunction(IntPtr L, int stackPos)
 		{
-			return lua_type(L, stackPos) == LuaTypes.LUA_TFUNCTION;
+            LuaTypes type = lua_type(L, stackPos);
+            return type == LuaTypes.LUA_TFUNCTION;
 		}
 
 		public static bool lua_islightuserdata(IntPtr L, int stackPos)
@@ -83,6 +84,12 @@ namespace XLua.LuaDLL
             return 0;
         }
 
+        /// <summary>
+        /// 经过测试被 call 的函数第一个 upvalue 一定是 _ENV, 此函数可以使用，但是如果是被 require 的文件或者 chunk，第一个 upvalue 一定不是 _ENV, 谁用谁 SB -- by wangjin
+        /// </summary>
+        /// <param name="L"></param>
+        /// <param name="stackPos"></param>
+        /// <returns></returns>
 		[DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int lua_setfenv(IntPtr L, int stackPos);
 
