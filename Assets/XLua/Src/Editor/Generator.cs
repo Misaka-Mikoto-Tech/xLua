@@ -1524,26 +1524,17 @@ namespace CSObjectWrapEditor
         }
 
 #if !XLUA_GENERAL
-        [InitializeOnLoad]
-        public class Startup
+        [UnityEditor.Callbacks.PostProcessScene]
+        public static void CheckGenrate()
         {
-
-            static Startup()
+            if (EditorApplication.isCompiling || Application.isPlaying)
             {
-                EditorApplication.update += Update;
+                return;
             }
-
-
-            static void Update()
+            if (!DelegateBridge.Gen_Flag)
             {
-                EditorApplication.update -= Update;
-
-                if (!System.IO.File.Exists(GeneratorConfig.common_path + "XLuaGenAutoRegister.cs"))
-                {
-                    UnityEngine.Debug.LogWarning("code has not been genrate, may be not work in phone!");
-                }
+                throw new InvalidOperationException("Code has not been genrated, may be not work in phone!");
             }
-
         }
 #endif
     }

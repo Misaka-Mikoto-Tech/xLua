@@ -80,7 +80,7 @@ namespace XLua
 
         public virtual Delegate GetDelegateByType(Type type)
         {
-            throw new InvalidCastException("This type must add to CSharpCallLua: " + type);
+            return null;
         }
     }
 
@@ -127,7 +127,7 @@ namespace XLua
     {
         internal static DelegateBridge[] DelegateBridgeList = new DelegateBridge[0]; // 给 IntKey 类型的 hotfix 使用用来存储编号与 GenBridge 之间的映射关系
 
-        internal static bool Gen_Flag = false;
+        public static bool Gen_Flag = false;
 
         public DelegateBridge(int reference, LuaEnv luaenv) : base(reference, luaenv)
         {
