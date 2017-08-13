@@ -101,10 +101,10 @@
 
 ## delegate 被置空 LuaEnv 才不会报错的原理
 1. 根本原因是 `Dispose` 会调用 `translator.AllDelegateBridgeReleased` 检查 `delegate_bridges` 中是否还有存活的对象，如果有存活的对象即报错误。
-2. 有两种表示对象被释放了，第一种是 `delegateBridge` 中某对象已没有引用者，那么它的 IsAlive 则为false，表示对象可以被移除，第二种是在第一种的基础上在之前的LuaEnv.Tick函数中被检查到并且从被列表中删除了)
-3. `Dispose`函数会调用 `System.GC.Collect()` 以及 `System.GC.WaitForPendingFinalizers()` 强制回收所有垃圾，如果某个 Delegate 被置空则会被回收并被调用目标的析构函数。另外由于执行了这两句代码，上述 **2** 中的第一种情况就不存在了，因为没有引用的对象一定被执行了析构函数。
+2. 有两种条件可以表示 Delegate 已经被释放了，第一种是 `delegateBridge` 中某对象已没有引用者，那么它的 IsAlive 则为false，第二种是在第一种的基础上在之前的 `LuaEnv.Tick` 函数中被检查到并且从被列表中删除了)
+3. `Dispose`函数会调用 `System.GC.Collect()` 以及 `System.GC.WaitForPendingFinalizers()` 强制回收所有垃圾，如果某个 Delegate 被置空则会被调用目标的析构函数并被回收，析构函数会将自己从列表中移除(下述)。另外由于执行了这两句代码，上述 **2.** 中的第一种情况就不存在了，因为没有引用的对象一定被执行了析构函数。
 4. `DelegateBridge` 的基类 `LuaBase` 的析构函数调用的 `Dispose` 函数会把自己引用的 `luaRef` 添加进 `refQueue` 队列等待被删除。
-5. `LuaEnv.Tick`函数的逻辑是会将 `refQueue` 队列中的所有待移除引用在 lua 端删除，如果是 delegate 的话还会将自己从 `translator.delegate_bridges` 列表中移除。
+5. `LuaEnv.Dispose` 会调用 `LuaEnv.Tick`, `LuaEnv.Tick` 函数的逻辑是会将 `refQueue` 队列中的所有待移除引用在 lua 端删除，如果是 delegate 的话还会将自己从 `translator.delegate_bridges` 列表中移除。
 7. 疑问：如果 LuaEnv 是游戏退出时才释放，是否还需要这些操作？
 
 
