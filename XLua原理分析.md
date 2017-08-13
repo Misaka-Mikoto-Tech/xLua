@@ -4,7 +4,7 @@
 - 类型的数据及getter,setter存储在lua function的upvalue里
 - 如果没有生成代码，那么会直接修改IL
 - 如果生成了代码，有代码生成的会被延迟加载并且注册所有的函数
-- 如果执行了生成代码命令，但目标类型并没有添加生成代码的标记，那么将会生成 Field Getter和Setter，它们的函数体是lambda表达式，使用 field.GetValue()方式通过反射获取或设置值(Utils.genFieldGetter)
+- 如果执行了生成了代码，但目标类型并没有标记为生成代码，那么将会生成 Field Getter和Setter，是一个lambda表达式，使用 field.GetValue()方式通过反射获取或设置值(Utils.genFieldGetter)
 - 给lua set数据会调用 PushByType, 如果没有Type会调用通用的 Push, 通用 push 同样会找不到type，则会立即调用Wrap来生成调用代码(DelayLoad or 生成 lambda 反射代码)   {xlua依赖类型系统}
 
 - lua 传递函数给 C# 代理时，会new一个delegateBridge 作为target，同时记录lua函数对应的ref(push -1,new Bridge(ref,L), method通过代码生成或其它手段指定，调用时执行method，push ref(lua函数)并call
@@ -30,7 +30,7 @@
 
 >> `例如： 注册 GameObject 类型的 Class 时会在 CS.UnityEngine 表中增加一个字段, 名为 `GameObject`, 指向刚创建的 table②`
 
-- xlua 对目标的对象方法查找和类方法查找走的是不同路径，对象查找是通过 metatable① 来完成的，而类方法走的则是从 `CS.` 开始的多级 table②，通过类方法找到某个类型(table)后，如果执行了括号操作, 将会调用 `_call` 字段对应的方法，`_call` 方法在在C#中一般被赋值为 _CreateInstance 方法，调用此方法会创建对象，并通过设置 metatable 和 objid 的方式传递给 lua 作为 userdata保存起来，c端代码  `(*((int *)userdata) = objid`
+- xlua 对目标的对象方法查找和类方法查找走的是不同路径，对象查找是通过 metatable① 来完成的，而类方法走的则是从 `CS.` 开始的多级 table②，通过类方法找到某个类型(table)后，如果执行了括号操作, 将会调用 `_call` 字段对应的方法，`_call` 方法在在C#中一般被赋值为 _CreateInstance 方法，调用此方法会创建对象，并通过设置 metatable 和 objid 的方式传递给 lua 作为 userdata保存起来 => (*((int *)userdata) = objid
  
 
 -----
@@ -39,19 +39,17 @@
 
 - 函数体被加入一个 DelegateBridge 类型的局部变量
 
-- 定义一个独一无二名字的 DelegateBridge 类型的静态字段，名字规则 `__Hotfix{overload NO.}_{method_name}`, 每个函数最多支持100个重载，
+- 定义一个独一无二名字的 DelegateBridge 类型的静态字段，名字规则 `__Hotfix{overload}_{method_name}`, 每个函数最多支持100个重载，
 
 - 如果是构造函数则遍历每一个ret，在之前都注入代码，否则在函数体第一条指令前插入
 
 - 把静态字段复制到局部变量，判断变量值是否为空，如果不为空就执行 hotfix 逻辑
 
--  self/this 参数的类型：如果是StateFull，需要luatable类型的参数，否则如果是值类型那么需要与之匹配的值类型，如果是引用类型则全部使用 System.Object
+-  self/this 参数的类型：如果是StateFull，需要luatable类型的参数，否则如果是值类型那么需要与之匹配的值类型，否则全部是 System.Object
 
 -  处理泛型参数和返回值
 
--  压栈 self 以及所有参数，call 对应的方法 `__Gen_Delegate_Imp15`, 最后直接 ret
-
--  附IL
+-  压栈 self 以及所有参数，call 对应的方法 `__Gen_Delegate_Imp15`, 最后直接 ret-  附IL
 ```
   .method private hidebysig instance void Update() cil managed
 {
@@ -62,9 +60,9 @@
     
     // 这是添加的一个当前类的 Field,类型与上面变量相同
     L_0000: ldsfld class XLua.DelegateBridge HotfixTest::__Hotfix0_Update
-    L_0005: stloc bridge   // 将字段弹出到局部变量
+    L_0005: stloc bridge   // 将字段复制到局部变量
     L_0009: ldloc bridge   // 压栈局部变量
-    L_000d: brfalse L_001d // 判断此变量是否为 null，为 null 则跳到原始函数入口
+    L_000d: brfalse L_001d // 判断此变量是否为 null
     L_0012: ldloc bridge
     L_0016: ldarg.0   // 压栈 this
     // 调用参数与 Update 匹配的 wrap 函数
@@ -93,13 +91,21 @@
 ```
 
 ## xlua.hotfix 函数执行逻辑
-- 调用 xlua.hotfix 会执行C#里的XLuaAccess方法100遍，找指定名称的字段或者属性，找到后就给它设置为lua函数的 warpper（可能是一个 DelegateBridge）
+- 调用 xlua.hotfix 会执行C#里的XLuaAccess方法100遍，找指定名称的字段或者属性，找到后就给它设置为lua函数的warpper（可能是一个 DelegateBridge）
 
-- 一个C#函数的多个重载都映射到同一个的lua hotfix 函数，只是参数不一样
+- 多个C#函数的重载都映射到同样的lua hotfix 函数，只是参数不一样
 
-- 如果使用了 IntKey, 那么执行 hotfix 时将不再执行100遍，因为它们有了严格的对应关系，但是由于IDE环境的代码与发布时的代码可能不同，函数序号可能不一致，此问题的处理方案是把映射文件进行动态下载。[官方文档对此问题的解释](https://github.com/Tencent/xLua/blob/master/Assets/XLua/Doc/hotfix.md#hotfix-flag)
+- 如果使用了 IntKey, 那么执行 hotfix 时将不再执行100遍，因为它们有了严格的对应关系，但是由于IDE与发布时的代码可能不同，函数序号可能对应不起来，此问题的处理方案是把映射文件进行动态下载。[官方文档对此问题的解释](https://github.com/Tencent/xLua/blob/master/Assets/XLua/Doc/hotfix.md#hotfix-flag)
  
  
- 
+
+## delegate 被置空luaEnv 才不会报错的原理
+1. `LuaEnv.Dispose` 调用 `System.GC.Collect()` 以及 `System.GC.WaitForPendingFinalizers()` 强制回收所有垃圾，如果某个 Delegate 被置空则会被回收并被调用目标的析构函数。
+2. `DelegateBridge` 的基类 `LuaBase` 的析构函数调用的 `Dispose` 函数会把自己引用的 `luaRef` 添加进 `refQueue` 队列等待被删除。
+3. 随后调用 `LuaEnv.Tick`，`Tick` 函数会将队列中所有的引用在 lua 端删除，如果是 delegate 的话还会将自己从 `translator.delegate_bridges` 列表中移除。
+4. `Dispose` 随后调用 `translator.AllDelegateBridgeReleased` 检查 `delegate_bridges` 中是否还有存活的对象(`delegateBridge` 对象已没有引用者或者之前已经被 `Tick` 检查到并且从列表中删除了)，如果有存活的对象即报错误。
+5. 疑问：如果 LuaEnv 是游戏退出时才释放，是否还需要这些操作？
+
+
  ## 注意事项
- - 一旦执行了 **XLua/Hotfix Inject In Editor** 命令，vs 调试时断点将不可用（经测试 mono develope的断点也无效），但是出错时 unity ide 自身显示的出错行数还是正确的，原因是 Mono.Cecil 处理IL指令时会同时修改与之关联 mdb 文件，但 vs 使用的 pdb 文件并没有被同步修改
+ - 一旦执行了 **XLua/Hotfix Inject In Editor** 将不可再使用 vs 调试，但是出错时 unity ide 自身显示的出错行数还是正确的，原因是 Mono.Cecil 处理IL指令时会同时修改与之关联 mdb 文件，但 vs 使用的 pdb 文件并没有被同步修改
