@@ -64,7 +64,7 @@
         3. UIBase 内的方法都加 this: 前缀
         4. C# 端的 IEnumerator 请使用 util.cs_generator 创建
         5. local 变量如果想让其它函数访问，请将其声明在被调用函数之前(也可以都放在文件顶部)
-        6. C# 端的 List，Dictionary 类型的参数在 Lua 端通通使用 table 传递
+        6. C# 端的 List，Dictionary 类型的参数在 Lua 端通通使用 table 传递, 但是如果要在 lua 访问 C# 的容器类(List, Dictionary 等)时因为 lua 获取到的是一个 userdata，并没有自动映射到 table，因此可以通过调用它们的 GetEnumerator(), MoveNext() 等方法来遍历
         7. lua table 的索引是从1开始的，所以请把代码里的索引全部 +1
         8. C# 端的泛型方法请注意尽量编写的可以被 lua 自动调用(泛型参数有类约束，参数列表内必须直接使用泛型参数)
         9. 如果要在lua内访问目标类型的私有成员，请添加 xlua.private_accessible(CS.类型名)
