@@ -42,7 +42,15 @@
         ```lua
         require 'hotfix.LoginRole'
         ```
-
+    - 快速查看 hotfix 效果可在 Unity Editor 内执行以下操作：
+        - 执行 `[XLua/Clear Generated Code]`
+        - 执行 `[XLua/Generate Code]`
+        - 执行 `[XLua/Hotfix Inject In Editor]`
+        - 以上每一步都需要等待 Enity Editor 右下角的菊花停止旋转后才可以继续下一步
+        - 执行第三步后 C# 代码将无法设置断点，如需调试 C# 请随便修改 C# 代码或者执行第一步清除生成的代码让  Unity 重新编译 dll 即可
+        
+        
+        
 2. ### 重写整个UI或者新增UI操作
     - 在 `Assets\3rd\XLua\Resources\@LuaSrc\UI` 文件夹内新建一个以 `ViewClass` 名为文件名，扩展名为 `.lua.txt` 的文件。
     - 在其中编写代码，请参考示例，注意事项如下:
