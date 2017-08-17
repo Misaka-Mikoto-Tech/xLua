@@ -71,6 +71,7 @@
         10. 对于C#端的 Delegate 以及 MulticastDelegate 类型的参数，必须将其转化为 C# 端的固定类型的 delegate         对象，比如 Action, 否则是不会被识别的(参见 PlayerView.lua.txt line 94)
         11. 如果执行 typeof(Delegate/MulticastDelegate).GetMethod("Invoke") 会导致 Unity Crash，请务必小心
         12. require 加载的文件的环境块始终是 _G, 如果想要代码在指定的环境块中执行请参考 uiReg.lua.txt 中的            xlua.CreateLuaUI 函数
+        13. C# 的 out 类型的参数被lua调用时可以忽略，并且会作为第2个以后的返回值，例如 Dictionary 的 TryGetValue 方法在 lua 端可以这样调用 `local isFind, val = dic:TryGetValue("abc")`
 
 3. ### 打包操作
 这个我没有测试充分，但是也有几点需要注意：
