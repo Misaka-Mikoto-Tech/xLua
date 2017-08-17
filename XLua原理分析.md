@@ -91,7 +91,8 @@
 ```
 
 ## xlua.hotfix 函数执行逻辑
-- 调用 xlua.hotfix 会执行C#里的XLuaAccess方法100遍，找指定名称的字段或者属性，找到后就给它设置为lua函数的warpper（可能是一个 DelegateBridge）
+- 非 IntKey 模式下调用 xlua.hotfix 会执行C#里的XLuaAccess方法100遍，找指定名称的字段或者属性，找到后就给它设置为lua函数的warpper（可能是一个 DelegateBridge）
+- IntKey 模式下重载了 xlua.hotfix 函数，执行它会从 hotfix_id_map 表中找到方法名对应的整数值，然后调用 C#的 `XLua.HotfixDelegateBridge.Set` 方法给指定 key 设置一个 lua 回调(就是你写的 lua 函数)
 
 - 多个C#函数的重载都映射到同样的lua hotfix 函数，只是参数不一样
 
