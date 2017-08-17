@@ -58,20 +58,19 @@
             <your ViewClass name> = 'UI/<刚才创建的文件不带扩展名>',
         }
         ```
-    - **使用 Lua 重写整个 UI 时翻译对应的 C# 代码需注意以下几点(有几条与上面相同):**
+    - **使用 Lua 重写整个 UI 时翻译对应的 C# 代码需注意以下几点(有几条与上面相同):**
         1. C# 的 **else if** 一定注意改成 **elseif**, 否则会 lua block 前后不能匹配
         2. 所有 C# 端的类型都从 CS. 开始
         3. UIBase 内的方法都加 this: 前缀
         4. C# 端的 IEnumerator 请使用 util.cs_generator 创建
         5. local 变量如果想让其它函数访问，请将其声明在被调用函数之前(也可以都放在文件顶部)
-        6. C# 端的 List，Dictionary 类型的参数在 Lua 端通通使用 table 传递, 但是如果要在 lua 访问 C# 的容器类(List, Dictionary 等)时因为 lua 获取到的是一个 userdata，并没有自动映射到 table，因此可以通过调用它们的 GetEnumerator(), MoveNext() 等方法来遍历
+        6. C# 端的 List，Dictionary 类型的参数在 Lua 端通通使用 table 传递
         7. lua table 的索引是从1开始的，所以请把代码里的索引全部 +1
         8. C# 端的泛型方法请注意尽量编写的可以被 lua 自动调用(泛型参数有类约束，参数列表内必须直接使用泛型参数)
         9. 如果要在lua内访问目标类型的私有成员，请添加 xlua.private_accessible(CS.类型名)
         10. 对于C#端的 Delegate 以及 MulticastDelegate 类型的参数，必须将其转化为 C# 端的固定类型的 delegate         对象，比如 Action, 否则是不会被识别的(参见 PlayerView.lua.txt line 94)
         11. 如果执行 typeof(Delegate/MulticastDelegate).GetMethod("Invoke") 会导致 Unity Crash，请务必小心
         12. require 加载的文件的环境块始终是 _G, 如果想要代码在指定的环境块中执行请参考 uiReg.lua.txt 中的            xlua.CreateLuaUI 函数
-        13. C# 的 out 类型的参数被lua调用时可以忽略，并且会作为第2个以后的返回值，例如 Dictionary 的 TryGetValue 方法在 lua 端可以这样调用 `local isFind, val = dic:TryGetValue("abc")`
 
 3. ### 打包操作
 这个我没有测试充分，但是也有几点需要注意：
@@ -81,3 +80,7 @@
 - 由于最终打包前插桩操作时 unity 已经不接受新文件，所以在打包脚本中在切换到指定平台生成 APK 前提前执行了一遍保证资源目录中已经有此文件,请不要去掉此操作(但可以把其它备份文件移除)。
 
 - iOS 由于裁剪可能会造成诸多代码无法访问，写完 lua 后请多测试，遇到不能操作的请把类型加到文件 XLuaTypeConfig.cs 中 带`[XLua.ReflectionUse]` 的字段中去。
+
+
+4. ### 其它
+    - 由于 xlua 生成器的 bug，对于包含扩展方法的类，也必须加到 ReflectionUse 里, 否则如果对目标类型执行了 xlua.private_accessible 后扩展方法会找不到，这跟官方文档的说明不相符，原因是生成反射wrap时对于哪些类型包含扩展方法 xlua 只检查了包含 ReflectionUse 属性的列表，而官方文档说 ReflectionUse 或者 LuaCallCSharp 都可以（目测作者很快就会修复）
