@@ -389,7 +389,7 @@ namespace XLua
             };
         }
 
-        static IEnumerable<MethodInfo> GetExtensionMethodsOf(Type type_to_be_extend)
+        internal static IEnumerable<MethodInfo> GetExtensionMethodsOf(Type type_to_be_extend)
         {
             if (InternalGlobals.extensionMethodMap == null)
             {
@@ -1105,14 +1105,13 @@ namespace XLua
             int static_getter_count, int static_setter_count)
 #endif
         {
-#if GEN_CODE_MINIMIZE
             ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
-#endif
             // 此时 top 为1，idx 1 是 type 全路径字符串
             LuaAPI.lua_createtable(L, 0, class_field_count);
 
-            string str = LuaAPI.xlua_tostring(L, -1);
-            // UnityEngine.Debug.Log("BeginClassRegister, " + (type == null ? "null": type.ToString()) + " metatable:" + str);
+            LuaAPI.xlua_pushasciistring(L, "UnderlyingSystemType");
+            translator.PushAny(L, type);
+            LuaAPI.lua_rawset(L, -3);
 
             int cls_table = LuaAPI.lua_gettop(L);
 

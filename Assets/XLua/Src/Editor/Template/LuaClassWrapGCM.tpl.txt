@@ -134,7 +134,6 @@ namespace XLua
 			<% end end)%>
             <%ForEachCsList(getters, function(getter) if getter.IsStatic and getter.ReadOnly then %>Utils.RegisterObject(L, this, Utils.CLS_IDX, "<%=getter.Name%>", <%=CsFullTypeName(type).."."..getter.Name%>);
             <%end end)%>
-            Utils.RegisterObject(L, this, Utils.CLS_IDX, "UnderlyingSystemType", typeof(<%=CsFullTypeName(type)%>));
 			<%ForEachCsList(getters, function(getter) if getter.IsStatic and (not getter.ReadOnly) then %>Utils.RegisterFunc(L, Utils.CLS_GETTER_IDX, "<%=getter.Name%>", <%=v_type_name%>_g_get_<%=getter.Name%><%=generic_arg_list%>);
             <%end end)%>
 			<%ForEachCsList(setters, function(setter) if setter.IsStatic then %>Utils.RegisterFunc(L, Utils.CLS_SETTER_IDX, "<%=setter.Name%>", <%=v_type_name%>_s_set_<%=setter.Name%><%=generic_arg_list%>);
@@ -446,27 +445,18 @@ namespace XLua
 			
 			if (__gen_param_count == 3)
 			{
-				System.IntPtr strlen;
-
-				System.IntPtr str = LuaAPI.lua_tolstring(L, 2, out strlen);
-
-				if (str != System.IntPtr.Zero && strlen.ToInt32() == 1)
-				{
-					byte op = System.Runtime.InteropServices.Marshal.ReadByte(str);
-				
-					<%if event.CanAdd then%>
-					if (op == (byte)'+') {
-						__cl_gen_to_be_invoked.<%=UnK(event.Name)%> += __gen_delegate;
-						return 0;
-					} 
-					<%end%>
-					<%if event.CanRemove then%>
-					if (op == (byte)'-') {
-						__cl_gen_to_be_invoked.<%=UnK(event.Name)%> -= __gen_delegate;
-						return 0;
-					} 
-					<%end%>
-				}
+				<%if event.CanAdd then%>
+				if (LuaAPI.xlua_is_eq_str(L, 2, "+")) {
+					__cl_gen_to_be_invoked.<%=UnK(event.Name)%> += __gen_delegate;
+					return 0;
+				} 
+				<%end%>
+				<%if event.CanRemove then%>
+				if (LuaAPI.xlua_is_eq_str(L, 2, "-")) {
+					__cl_gen_to_be_invoked.<%=UnK(event.Name)%> -= __gen_delegate;
+					return 0;
+				} 
+				<%end%>
 			}
 			LuaAPI.luaL_error(L, "invalid arguments to <%=CsFullTypeName(type)%>.<%=event.Name%>!");
             return 0;
@@ -483,13 +473,13 @@ namespace XLua
 			}
 			
 			<%if event.CanAdd then%>
-			if (__gen_param_count == 2 && LuaAPI.lua_tostring(L, 1) == "+") {
+			if (__gen_param_count == 2 && LuaAPI.xlua_is_eq_str(L, 1, "+")) {
 				<%=CsFullTypeName(type)%>.<%=UnK(event.Name)%> += __gen_delegate;
 				return 0;
 			} 
 			<%end%>
 			<%if event.CanRemove then%>
-			if (__gen_param_count == 2 && LuaAPI.lua_tostring(L, 1) == "-") {
+			if (__gen_param_count == 2 && LuaAPI.xlua_is_eq_str(L, 1, "-")) {
 				<%=CsFullTypeName(type)%>.<%=UnK(event.Name)%> -= __gen_delegate;
 				return 0;
 			} 
