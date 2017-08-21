@@ -34,7 +34,7 @@
  
 
 -----
-## Inject HotFix Opcode的原理分析
+## Inject HotFix Opcode的原理分析(非 IntKey 模式)
 - 所有需要注入的函数都需要有与之定义对应的 delegatebridge 里的方法匹配用来把参数传递给lua并call，比如非静态无参方法使用此方法 `void __Gen_Delegate_Imp15(object p0)`， 生成代码时会把标记为 hotfix 的类里面的所有方法都生成对应签名的wrap方法, DelegateBridge.GetDelegateByType 方法没有列出来的都是为hotfix生成的
 
 - 函数体被加入一个 DelegateBridge 类型的局部变量
@@ -89,6 +89,12 @@
     L_0050: ret 
 }
 ```
+
+## Inject HotFix Opcode的原理分析(IntKey 模式)
+- 大部分与非 IntKey 模式相同
+- 回调函数不是存储在每个类的静态变量内，而是有个全局数组，每个被插桩的函数去数组取固定位置的值
+- 如果值不为空则执行 hotfix 逻辑，否则执行原逻辑
+- IntKey 模式需要一个函数名到整数值的映射文件，此文件在执行 Inject 操作后生成，lua 在 hotfix 之前必须已经加载(否则无法找到对应 整数值)
 
 ## xlua.hotfix 函数执行逻辑
 - 非 IntKey 模式下调用 xlua.hotfix 会执行C#里的XLuaAccess方法100遍，找指定名称的字段或者属性，找到后就给它设置为lua函数的warpper（可能是一个 DelegateBridge）
