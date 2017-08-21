@@ -72,8 +72,8 @@
         3. UIBase 内的方法都加 this: 前缀
         4. C# 端的 IEnumerator 请使用 util.cs_generator 创建
         5. local 变量如果想让其它函数访问，请将其声明在被调用函数之前(也可以都放在文件顶部)
-        6. C# 端的 List，Dictionary 类型的参数在 Lua 端通通使用 table 传递
-        7. lua table 的索引是从1开始的，所以请把代码里的索引全部 +1
+        6. 如需调用的 C# 方法某个参数类型为 List/Dictionary, 可以采用创建一个 lua table 作为参数的方式将数据传递给C#; 反之若 C# 端的 List/Dictionary 类型的变量返回值等需要在 lua 端操作时(墙裂不建议，建议改用 table), 可采用类似 GetEnumerator() 然后 MoveNext 的方法进行遍历。
+        7. lua table 的索引是从1开始的，所以如果操纵的是lua table而不是C#端的容器类或者数组时请把代码里的索引全部 +1
         8. C# 端的泛型方法请注意尽量编写的可以被 lua 自动调用(泛型参数有类约束，参数列表内必须直接使用泛型参数)
         9. 如果要在lua内访问目标类型的私有成员，请添加 xlua.private_accessible(CS.类型名)
         10. 对于C#端的 Delegate 以及 MulticastDelegate 类型的参数，必须将其转化为 C# 端的固定类型的 delegate         对象，比如 Action, 否则是不会被识别的(参见 PlayerView.lua.txt line 94)
