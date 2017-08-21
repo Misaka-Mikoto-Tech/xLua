@@ -24,7 +24,7 @@
 
 ## Lua 编写日常操作
 1. ### Hotfix 操作
-    - 在 `Assets\3rd\XLua\Resources\@LuaSrc\HotFix` 文件夹内新建一个以被 hotfix 类名为文件名，扩展名为 `.lua.txt` 的文件。
+    - 在 `Assets\Resources\@XLua\LuaSrc\HotFix` 文件夹内新建一个以被 hotfix 类名为文件名，扩展名为 `.lua.txt` 的文件(eg. LoginRole.lua.txt)。
     - 在其中编写代码举例如下:
         ```lua
             -- 如果加上这一行那么 lua 可以访问此类中的私有成员和方法, 本质上是重新生成了以反射方式调用的 wrap
@@ -38,7 +38,7 @@
                 end
             )
         ```
-    - 打开文件 `Assets\3rd\XLua\Resources\@LuaSrc\hotfixReg.lua.txt`, 在其中添加一行注册代码举例如下:
+    - 打开文件 `Assets\Resources\@XLua\LuaSrc\hotfixReg.lua.txt`, 在其中添加一行注册代码举例如下:
         ```lua
         require 'hotfix.LoginRole'
         ```
@@ -52,7 +52,7 @@
         
         
 2. ### 重写整个UI或者新增UI操作
-    - 在 `Assets\3rd\XLua\Resources\@LuaSrc\UI` 文件夹内新建一个以 `ViewClass` 名为文件名，扩展名为 `.lua.txt` 的文件。
+    - 在 `Assets\Resources\@XLua\LuaSrc\UI` 文件夹内新建一个以 `ViewClass` 名为文件名，扩展名为 `.lua.txt` 的文件。
     - 在其中编写代码，请参考示例，注意事项如下:
         - 需要暴露给 C# 调用的函数请不要加 local 前缀，可用的函数在示例文件尾部有列出。
         - UIBase 内的方法调用和字段属性访问请一律加 this 前缀。
@@ -60,7 +60,7 @@
             ```lua
             local newObj = CS.UnityEngine.GameObject()
             ```
-    - 打开文件 `Assets\3rd\XLua\Resources\@LuaSrc\uiReg.lua.txt`, 在其头部的 table 中添加一行举例如下：
+    - 打开文件 `Assets\Resources\@XLua\LuaSrc\uiReg.lua.txt`, 在其头部的 table 中添加一行举例如下：
         ```lua
         local allUIs = {
             <your ViewClass name> = 'UI/<刚才创建的文件不带扩展名>',
@@ -83,7 +83,8 @@
 3. ### 打包操作
 这个我没有测试充分，但是也有几点需要注意：
 
-- 为了提高性能并且减小可执行文件增量，本项目采用了 IntKey 的方式生成 hotfix，也就是 hotfix 判断并不是判断的方法名而是整数值，但刚才我们 hotfix 时都是使用的方法名，因此需要有个文件来进行方法名和整数值的映射，这个文件位于 `Assets\Resources\@XLua\auto_id_map\` 下名为 `hotfix_id_map.lua.txt`，为了安全 XLua 每次都会备份之前的文件，请妥善保管这些文件（可以考虑打包时把旧文件剪切到其它位置）
+- 为了提高性能并且减小可执行文件增量，本项目采用了 IntKey 的方式生成 hotfix，也就是 hotfix 判断并不是判断的方法名而是整数值，但刚才我们 hotfix 时都是使用的方法名，因此需要有个文件来进行方法名和整数值的映射，
+这个文件位于 `Assets\Resources\@XLua\auto_id_map\` 下名为 `hotfix_id_map.lua.txt`，为了安全 XLua 每次都会备份之前的文件，请妥善保管这些文件（可以考虑打包时把旧文件剪切到其它位置）
 
 - 由于最终打包前插桩操作时 unity 已经不接受新文件，所以在打包脚本中在切换到指定平台生成 APK 前提前执行了一遍保证资源目录中已经有此文件,请不要去掉此操作(但可以把其它备份文件移除)。
 
@@ -91,7 +92,8 @@
 
 
 ## 其它
-- 由于 xlua 生成器的 bug，对于包含扩展方法的类，也必须加到 ReflectionUse 里, 否则如果对目标类型执行了 xlua.private_accessible 后扩展方法会找不到，这跟官方文档的说明不相符，原因是生成反射wrap时对于哪些类型包含扩展方法 xlua 只检查了包含 ReflectionUse 属性的列表，而官方文档说 ReflectionUse 或者 LuaCallCSharp 都可以（目测作者很快就会修复）
+- 由于 xlua 生成器的 bug，对于包含扩展方法的类，也必须加到 ReflectionUse 里, 否则如果对目标类型执行了 xlua.private_accessible 后扩展方法会找不到，
+这跟官方文档的说明不相符，原因是生成反射wrap时对于哪些类型包含扩展方法 xlua 只检查了包含 ReflectionUse 属性的列表，而官方文档说 ReflectionUse 或者 LuaCallCSharp 都可以（目测作者很快就会修复）
 
 - 由于最终打包前插桩操作时 unity 已经不接受新文件，所以在打包脚本中在切换到指定平台生成 APK 前提前执行了一遍保证资源目录中已经有此文件,请不要去掉此操作(但可以把其它备份文件移除)。
 
