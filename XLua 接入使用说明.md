@@ -76,7 +76,7 @@
         7. lua table 的索引是从1开始的，所以如果操纵的是lua table而不是C#端的容器类或者数组时请把代码里的索引全部 +1
         8. C# 端的泛型方法请注意尽量编写的可以被 lua 自动调用(泛型参数有类约束，参数列表内必须直接使用泛型参数)
         9. 如果要在lua内访问目标类型的私有成员，请添加 xlua.private_accessible(CS.类型名)
-        10. 对于C#端的 Delegate 以及 MulticastDelegate 类型的参数，必须将其转化为 C# 端的固定类型的 delegate         对象，比如 Action, 否则是不会被识别的(参见 PlayerView.lua.txt line 94)
+        10. 如果调用的 C# 方法某参数类型为 Delegate/MulticastDelegate，在 lua 端必须将某 lua 函数转化为 C# 的固定类型的 delegate 对象，比如 CS.System.Action(luaCallback), 否则是不会被识别的(参见 PlayerView.lua.txt line 94)
         11. 如果执行 typeof(Delegate/MulticastDelegate).GetMethod("Invoke") 会导致 Unity Crash，请务必小心
         12. require 加载的文件的环境块始终是 _G, 如果想要代码在指定的环境块中执行请参考 uiReg.lua.txt 中的            xlua.CreateLuaUI 函数
 
