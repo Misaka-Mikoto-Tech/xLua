@@ -96,7 +96,7 @@
 
 - 多个C#函数的重载都映射到同样的lua hotfix 函数，只是参数不一样
 
-- 如果使用了 IntKey, 那么执行 hotfix 时将不再执行100遍，因为它们有了严格的对应关系，但是由于IDE与发布时的代码可能不同，函数序号可能对应不起来，此问题的处理方案是把映射文件进行动态下载。[官方文档对此问题的解释](https://github.com/Tencent/xLua/blob/master/Assets/XLua/Doc/hotfix.md#hotfix-flag)
+- 如果使用了 IntKey, 那么执行 hotfix 时将不再执行100遍，因为它们有了严格的对应关系，但是由于IDE与发布时的代码可能不同，函数序号可能对应不起来，此问题的处理方案是把映射文件进行动态下载或者在打包脚本中打包资源前先执行一遍 inject 方法。[官方文档对此问题的解释](https://github.com/Tencent/xLua/blob/master/Assets/XLua/Doc/hotfix.md#hotfix-flag)
  
  
 
