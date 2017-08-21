@@ -24,7 +24,7 @@
 
 ## Lua 编写日常操作
 1. ### Hotfix 操作
-    - 在 `Assets\Resources\@XLua\LuaSrc\HotFix` 文件夹内新建一个以被 hotfix 类名为文件名，扩展名为 `.lua.txt` 的文件。
+    - 在 `Assets\Resources\@XLua\LuaSrc\HotFix` 文件夹内新建一个以被 hotfix 类名为文件名，扩展名为 `.lua.txt` 的文件。
     - 在其中编写代码举例如下:
         ```lua
             -- 如果加上这一行那么 lua 可以访问此类中的私有成员和方法, 本质上是重新生成了以反射方式调用的 wrap
