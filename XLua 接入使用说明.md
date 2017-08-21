@@ -176,12 +176,8 @@
 
 
 4. ### 其它
-    - 由于 xlua 生成器的 bug，对于包含扩展方法的类，也必须加到 ReflectionUse 里, 否则如果对目标类型执行了 xlua.private_accessible 后扩展方法会找不到，这跟官方文档的说明不相符，原因是生成反射wrap时对于哪些类型包含扩展方法 xlua 只检查了包含 ReflectionUse 属性的列表，而官方文档说 ReflectionUse 或者 LuaCallCSharp 都可以（目测作者很快就会修复）` 下名为 `hotfix_id_map.lua.txt`，为了安全 XLua 每次都会备份之前的文件，请妥善保管这些文件（可以考虑打包时把旧文件剪切到其它位置）
-
-- 由于最终打包前插桩操作时 unity 已经不接受新文件，所以在打包脚本中在切换到指定平台生成 APK 前提前执行了一遍保证资源目录中已经有此文件,请不要去掉此操作(但可以把其它备份文件移除)。
-
-- iOS 由于裁剪可能会造成诸多代码无法访问，写完 lua 后请多测试，遇到不能操作的请把类型加到文件 XLuaTypeConfig.cs 中 带`[XLua.ReflectionUse]` 的字段中去。
-
-
-4. ### 其它
     - 由于 xlua 生成器的 bug，对于包含扩展方法的类，也必须加到 ReflectionUse 里, 否则如果对目标类型执行了 xlua.private_accessible 后扩展方法会找不到，这跟官方文档的说明不相符，原因是生成反射wrap时对于哪些类型包含扩展方法 xlua 只检查了包含 ReflectionUse 属性的列表，而官方文档说 ReflectionUse 或者 LuaCallCSharp 都可以（目测作者很快就会修复）
+
+    - 由于最终打包前插桩操作时 unity 已经不接受新文件，所以在打包脚本中在切换到指定平台生成 APK 前提前执行了一遍保证资源目录中已经有此文件,请不要去掉此操作(但可以把其它备份文件移除)。
+
+    - iOS 由于裁剪可能会造成诸多代码无法访问，写完 lua 后请多测试，遇到不能操作的请把类型加到文件 XLuaTypeConfig.cs 中 带`[XLua.ReflectionUse]` 的字段中去。
