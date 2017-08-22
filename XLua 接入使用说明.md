@@ -67,18 +67,18 @@
         }
         ```
     - **使用 Lua 重写整个 UI 时翻译对应的 C# 代码需注意以下几点(有几条与上面相同):**
-        1. C# 的 **else if** 一定注意改成 **elseif**, 否则会 lua block 前后不能匹配
+        1. C# 的 **else if** 一定注意改成 **elseif**, 否则会 lua block 前后不能匹配 
         2. 所有 C# 端的类型都从 CS. 开始
-        3. UIBase 内的方法都加 this: 前缀
-        4. C# 端的 IEnumerator 请使用 util.cs_generator 创建
-        5. local 变量如果想让其它函数访问，请将其声明在被调用函数之前(也可以都放在文件顶部)
-        6. C# 端的 List，Dictionary 类型的参数在 Lua 端通通使用 table 传递
-        7. lua table 的索引是从1开始的，所以请把代码里的索引全部 +1
-        8. C# 端的泛型方法请注意尽量编写的可以被 lua 自动调用(泛型参数有类约束，参数列表内必须直接使用泛型参数)
-        9. 如果要在lua内访问目标类型的私有成员，请添加 xlua.private_accessible(CS.类型名)
-        10. 对于C#端的 Delegate 以及 MulticastDelegate 类型的参数，必须将其转化为 C# 端的固定类型的 delegate 对象，比如 Action, 否则是不会被识别的(参见 PlayerView.lua.txt line 94)
-        11. 如果执行 typeof(Delegate/MulticastDelegate).GetMethod("Invoke") 会导致 Unity Crash，请务必小心
-        12. require 加载的文件的环境块始终是 _G, 如果想要代码在指定的环境块中执行请参考 uiReg.lua.txt 中的 xlua.CreateLuaUI 函数
+        3. UIBase 内的方法都加 this: 前缀 
+        4. C# 端的 IEnumerator 请使用 util.cs_generator 创建 
+        5. local 变量如果想让其它函数访问，请将其声明在被调用函数之前(也可以都放在文件顶部) 
+        6. 如需调用的 C# 方法某个参数类型为 List/Dictionary, 可以采用创建一个 lua table 作为参数的方式将数据传递给C#; 反之若 C# 端的 List/Dictionary 类型的变量返回值等需要在 lua 端操作时(墙裂不建议，建议改用 table), 可采用类似 GetEnumerator() 然后 MoveNext 的方法进行遍历。 
+        7. lua table 的索引是从1开始的，所以如果操纵的是lua table而不是C#端的容器类或者数组时请把代码里的索引全部 +1 
+        8. C# 端的泛型方法请注意尽量编写的可以被 lua 自动调用(泛型参数有类约束，参数列表内必须直接使用泛型参数) 
+        9. 如果要在lua内访问目标类型的私有成员，请添加 xlua.private_accessible(CS.类型名) 
+        10. 如果调用的 C# 方法某参数类型为 Delegate/MulticastDelegate，在 lua 端必须将某 lua 函数转化为 C# 的固定类型的 delegate 对象，比如 CS.System.Action(luaCallback), 否则是不会被识别的(参见 PlayerView.lua.txt line 94) 
+        11. 如果执行 typeof(Delegate/MulticastDelegate).GetMethod("Invoke") 会导致 Unity Crash，请务必小心 
+        12. require 加载的文件的环境块始终是 _G, 如果想要代码在指定的环境块中执行请参考 uiReg.lua.txt 中的            xlua.CreateLuaUI 函数 
 
 3. ### 打包操作
 这个我没有测试充分，但是也有几点需要注意：
