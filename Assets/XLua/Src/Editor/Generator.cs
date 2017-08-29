@@ -30,6 +30,8 @@ namespace CSObjectWrapEditor
         public static string common_path = Application.dataPath + "/XLua/Gen/";
 #endif
 
+        public static string auto_id_map = common_path + "Resources/";
+
         static GeneratorConfig()
         {
             foreach(var type in (from type in Utils.GetAllTypes()
@@ -59,6 +61,25 @@ namespace CSObjectWrapEditor
                         }
                     }
                 }
+
+                // auto_id_map path
+                foreach (var field in type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)) {
+                    if (field.FieldType == typeof(string) && field.IsDefined(typeof(AutoIdMapPathAttribute), false)) {
+                        auto_id_map = field.GetValue(null) as string;
+                        if (!auto_id_map.EndsWith("/")) {
+                            auto_id_map = auto_id_map + "/";
+                        }
+                    }
+                }
+
+                foreach (var prop in type.GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)) {
+                    if (prop.PropertyType == typeof(string) && prop.IsDefined(typeof(AutoIdMapPathAttribute), false)) {
+                        auto_id_map = prop.GetValue(null, null) as string;
+                        if (!auto_id_map.EndsWith("/")) {
+                            auto_id_map = auto_id_map + "/";
+                        }
+                    }
+                }
             }
         }
     }
@@ -82,6 +103,11 @@ namespace CSObjectWrapEditor
     }
 
     public class GenPathAttribute : Attribute
+    {
+
+    }
+
+    public class AutoIdMapPathAttribute : Attribute
     {
 
     }
