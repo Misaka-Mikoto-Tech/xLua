@@ -95,15 +95,31 @@ namespace XLua
                    select type;
         }
 #else
-        public static IEnumerable<Type> GetAllTypes(bool exclude_generic_definition = true)
+        public static List<Type> GetAllTypes(bool exclude_generic_definition = true)
         {
-            return from assembly in AppDomain.CurrentDomain.GetAssemblies()
+            List<Type> allTypes = new List<Type>();
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            for(int i = 0; i < assemblies.Length; i++)
+            {
+                try
+                {
 #if UNITY_EDITOR || XLUA_GENERAL
-                                          where !(assembly.ManifestModule is System.Reflection.Emit.ModuleBuilder)
+                    if (!(assemblies[i].ManifestModule is System.Reflection.Emit.ModuleBuilder))
+                    {
 #endif
-                                          from type in assembly.GetTypes()
-                                          where exclude_generic_definition ? !type.IsGenericTypeDefinition() : true
-                                          select type;
+                        allTypes.AddRange(assemblies[i].GetTypes()
+                        .Where(type => exclude_generic_definition ? !type.IsGenericTypeDefinition() : true)
+                        );
+#if UNITY_EDITOR || XLUA_GENERAL
+                    }
+#endif
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            return allTypes;
         }
 #endif
 
@@ -446,7 +462,7 @@ namespace XLua
 
                 InternalGlobals.extensionMethodMap = (from type in type_def_extention_method
                                         from method in type.GetMethods(BindingFlags.Static | BindingFlags.Public)
-                                        where IsSupportedExtensionMethod(method)
+                                        where method.IsDefined(typeof(ExtensionAttribute), false) && IsSupportedMethod(method)
                                         group method by getExtendedType(method)).ToDictionary(g => g.Key, g => g as IEnumerable<MethodInfo>);
             }
             IEnumerable<MethodInfo> ret = null;
@@ -1334,14 +1350,14 @@ namespace XLua
             return true;
         }
 
-        public static bool IsSupportedExtensionMethod(MethodBase method)
+        public static bool IsSupportedMethod(MethodInfo method)
         {
-            if (!method.IsDefined(typeof(ExtensionAttribute), false))
-                return false;
             if (!method.ContainsGenericParameters)
                 return true;
             var methodParameters = method.GetParameters();
+            var returnType = method.ReturnType;
             var hasValidGenericParameter = false;
+            var returnTypeValid = !returnType.IsGenericParameter;
             for (var i = 0; i < methodParameters.Length; i++)
             {
                 var parameterType = methodParameters[i].ParameterType;
@@ -1355,9 +1371,36 @@ namespace XLua
                             return false;
                     }
                     hasValidGenericParameter = true;
+                    if (!returnTypeValid)
+                    {
+                        if (parameterType == returnType)
+                        {
+                            returnTypeValid = true;
+                        }
+                    }
                 }
             }
-            return hasValidGenericParameter;
+            return hasValidGenericParameter && returnTypeValid;
+        }
+
+        public static MethodInfo MakeGenericMethodWithConstraints(MethodInfo method)
+        {
+            try
+            {
+                var genericArguments = method.GetGenericArguments();
+                var constraintedArgumentTypes = new Type[genericArguments.Length];
+                for (var i = 0; i < genericArguments.Length; i++)
+                {
+                    var argumentType = genericArguments[i];
+                    var parameterConstraints = argumentType.GetGenericParameterConstraints();
+                    constraintedArgumentTypes[i] = parameterConstraints[0];
+                }
+                return method.MakeGenericMethod(constraintedArgumentTypes);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         private static Type getExtendedType(MethodInfo method)
