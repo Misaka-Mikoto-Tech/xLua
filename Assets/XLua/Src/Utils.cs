@@ -901,9 +901,6 @@ namespace XLua
                     LuaAPI.lua_pop(L, 1);
                     LuaAPI.luaL_newmetatable(L, type.FullName);
                 }
-
-                string str = LuaAPI.xlua_tostring(L, -1);
-                // UnityEngine.Debug.Log("BeginObjectRegister, " + type.ToString() + " metatable:" + str);
             }
 
             LuaAPI.lua_pushlightuserdata(L, LuaAPI.xlua_tag());
