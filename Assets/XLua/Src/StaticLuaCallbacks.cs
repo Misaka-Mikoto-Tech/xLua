@@ -50,7 +50,7 @@ namespace XLua
                 object left = translator.FastGetCSObj(L, 1);
                 object right = translator.FastGetCSObj(L, 2);
                 Type typeOfLeft = left.GetType();
-                if (!typeOfLeft.IsEnum || typeOfLeft != right.GetType())
+                if (!typeOfLeft.IsEnum() || typeOfLeft != right.GetType())
                 {
                     return LuaAPI.luaL_error(L, "invalid argument for Enum BitwiseAnd");
                 }
@@ -72,7 +72,7 @@ namespace XLua
                 object left = translator.FastGetCSObj(L, 1);
                 object right = translator.FastGetCSObj(L, 2);
                 Type typeOfLeft = left.GetType();
-                if (!typeOfLeft.IsEnum || typeOfLeft != right.GetType())
+                if (!typeOfLeft.IsEnum() || typeOfLeft != right.GetType())
                 {
                     return LuaAPI.luaL_error(L, "invalid argument for Enum BitwiseOr");
                 }
@@ -721,7 +721,7 @@ namespace XLua
                 {
                     if (www.isDone || !string.IsNullOrEmpty(www.error))
                     {
-                        System.Threading.Thread.Sleep(50); //±È½ÏhackerµÄ×ö·¨
+                        System.Threading.Thread.Sleep(50); //ï¿½È½ï¿½hackerï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                         if (!string.IsNullOrEmpty(www.error))
                         {
                             LuaAPI.lua_pushstring(L, string.Format(
@@ -1065,6 +1065,28 @@ namespace XLua
             catch (Exception e)
             {
                 return LuaAPI.luaL_error(L, "c# exception in delegate constructor: " + e);
+            }
+        }
+
+        [MonoPInvokeCallback(typeof(LuaCSFunction))]
+        public static int ToFunction(RealStatePtr L)
+        {
+            try
+            {
+                ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
+                MethodBase m;
+                translator.Get(L, 1, out m);
+                if (m == null)
+                {
+                    return LuaAPI.luaL_error(L, "ToFunction: #1 argument must be a MethodBase");
+                }
+                translator.PushFixCSFunction(L,
+                        new LuaCSFunction(translator.methodWrapsCache._GenMethodWrap(m.DeclaringType, m.Name, new MethodBase[] { m }).Call));
+                return 1;
+            }
+            catch (Exception e)
+            {
+                return LuaAPI.luaL_error(L, "c# exception in ToFunction: " + e);
             }
         }
     }

@@ -68,6 +68,7 @@ namespace XLua
         private MethodInfo LuaAPI_lua_pushbytes = typeof(LuaAPI).GetMethod("lua_pushstring", new Type[] { typeof(RealStatePtr), typeof(byte[]) });
         private MethodInfo LuaAPI_lua_pushlightuserdata = typeof(LuaAPI).GetMethod("lua_pushlightuserdata");
         private MethodInfo ObjectTranslator_PushDecimal = typeof(ObjectTranslator).GetMethod("PushDecimal");
+        private MethodInfo ObjectTranslator_GetDecimal = typeof(ObjectTranslator).GetMethod("GetDecimal");
 
         private Dictionary<Type, MethodInfo> fixPush;
 
@@ -325,6 +326,10 @@ namespace XLua
                     throw new InvalidProgramException(type + " is not a type need cast");
                 }
             }
+            else if (type == typeof(decimal))
+            {
+                il.Emit(OpCodes.Callvirt, ObjectTranslator_GetDecimal);
+            }
             else
             {
                 if (isParam)
@@ -390,7 +395,7 @@ namespace XLua
 
             TypeBuilder impl_type_builder = CodeEmitModule.DefineType("XLuaGenInterfaceImpl" + (genID++), TypeAttributes.Public | TypeAttributes.Class, typeof(LuaBase), new Type[] { to_be_impl});
 
-            foreach(var member in to_be_impl.GetMembers())
+            foreach(var member in (new Type[] { to_be_impl }.Concat(to_be_impl.GetInterfaces()).SelectMany(i=> i.GetMembers())))
             {
                 if (member.MemberType == MemberTypes.Method)
                 {
@@ -638,7 +643,7 @@ namespace XLua
 
         private void emitLiteralLoad(ILGenerator il, Type type, object obj, int localIndex)
         {
-            if (ReferenceEquals(obj, null))
+            if (!type.IsValueType && ReferenceEquals(obj, null))
             {
                 il.Emit(OpCodes.Ldnull);
             }
@@ -1154,7 +1159,7 @@ namespace XLua
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldloc, translator);
             il.Emit(OpCodes.Ldc_I4_1);
-            il.Emit(OpCodes.Ldc_I4, instanceMethods.Count);
+            il.Emit(OpCodes.Ldc_I4_1);
             il.Emit(OpCodes.Ldc_I4_1);
             il.Emit(OpCodes.Ldc_I4_1);
             il.Emit(OpCodes.Ldc_I4_M1);
@@ -1192,7 +1197,10 @@ namespace XLua
                 {
                     if (prop.Name == "Item" && prop.GetIndexParameters().Length > 0)
                     {
-                        itemSetter.Add(setter);
+                        if (!prop.GetIndexParameters()[0].ParameterType.IsAssignableFrom(typeof(string)))
+                        {
+                            itemSetter.Add(setter);
+                        }
                     }
                     else
                     {
@@ -1547,7 +1555,7 @@ namespace XLua
                     }
                 }
 
-                Label endOfBlock = endOfBlock = il.DefineLabel();
+                Label endOfBlock = il.DefineLabel();
 
                 if (needCheckParameterType)
                 {
