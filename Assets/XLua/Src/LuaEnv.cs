@@ -247,7 +247,6 @@ namespace XLua
                 int errFunc = LuaAPI.load_error_func(_L, errorFuncRef);
                 if (LuaAPI.xluaL_loadbuffer(_L, chunk, chunk.Length, chunkName) == 0)
                 {
-                    int tmpTop = LuaAPI.lua_gettop(_L);
                     if (env != null)
                     {
                         env.push(_L);
@@ -457,26 +456,20 @@ namespace XLua
             local load_assembly = xlua.load_assembly
 
             function metatable:__index(key) 
-                --print('metatable:_index before rawget,key:' .. key .. ' of id:' .. tostring(self))
                 local fqn = rawget(self,'.fqn')
-                --print('metatable:_index after rawget,fqn:' .. tostring(fqn))
                 fqn = ((fqn and fqn .. '.') or '') .. key
-                -- print('metatable:_index after join fqn and key,fqn:' .. fqn)
 
                 local obj = import_type(fqn)
-                -- print('metatable:_index after import_type(fqn),obj is nil:' .. tostring(obj == nil))
+
                 if obj == nil then
                     -- It might be an assembly, so we load it too.
                     obj = { ['.fqn'] = fqn }
                     setmetatable(obj, metatable)
-                    --print('metatable:_index after setmetatable when obj is nil with key:' .. key .. ', fqn:' .. fqn .. ' ,obj is:' .. tostring(obj))
                 elseif obj == true then
-                    --print('metatable:_index when obj(' .. tostring(self) .. ') == true with key:' .. key .. ', value is:' .. tostring(rawget(self, key)))
                     return rawget(self, key)
                 end
 
                 -- Cache this lookup
-                -- print('metatable:_index rawset with key:' .. key .. ' and obj:' .. tostring(obj))
                 rawset(self, key, obj)
                 return obj
             end
@@ -488,8 +481,6 @@ namespace XLua
 
             CS = CS or {}
             setmetatable(CS, metatable)
-            -- print('CS:' .. tostring(CS))
-            -- print('metatable:' .. tostring(metatable))
 
             typeof = function(t) return t.UnderlyingSystemType end
             cast = xlua.cast

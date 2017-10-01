@@ -1070,7 +1070,6 @@ namespace XLua
                     LuaAPI.luaL_newmetatable(L, type.FullName);
                 }
             }
-
             LuaAPI.lua_pushlightuserdata(L, LuaAPI.xlua_tag());
             LuaAPI.lua_pushnumber(L, 1);
             LuaAPI.lua_rawset(L, -3);

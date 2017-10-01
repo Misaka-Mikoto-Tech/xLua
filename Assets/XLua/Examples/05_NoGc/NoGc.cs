@@ -165,7 +165,6 @@ namespace XLuaTest
             luaenv.Global.Set("monoBehaviour", this);
 
             luaenv.Global.Get("id", out f1);
-            luaenv.Global.Get("id", out f1);
             luaenv.Global.Get("id", out f2);
             luaenv.Global.Get("id", out f3);
             luaenv.Global.Get("id", out f4);

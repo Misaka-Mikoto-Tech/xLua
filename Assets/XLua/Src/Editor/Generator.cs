@@ -107,11 +107,6 @@ namespace CSObjectWrapEditor
 
     }
 
-    public class AutoIdMapPathAttribute : Attribute
-    {
-
-    }
-
     public struct XLuaTemplate
     {
         public string name;
@@ -1078,14 +1073,7 @@ namespace CSObjectWrapEditor
         {
             var enum_types = LuaCallCSharp.Where(type => type.IsEnum).Distinct();
 
-#if XLUA_GENERAL
-            //TODO: 后续支持位运算重载后，这块可以去掉
-            luaenv.Global.Set("g_enum_get_fields_flag", BindingFlags.Static | BindingFlags.Public);
-#endif
             GenEnumWrap(enum_types, GeneratorConfig.common_path);
-#if XLUA_GENERAL
-            luaenv.Global.Set("g_enum_get_fields_flag", (object)null);
-#endif
         }
 
         static MethodInfo makeGenericMethodIfNeeded(MethodInfo method)

@@ -59,8 +59,7 @@ namespace XLua.LuaDLL
 
 		public static bool lua_isfunction(IntPtr L, int stackPos)
 		{
-            LuaTypes type = lua_type(L, stackPos);
-            return type == LuaTypes.LUA_TFUNCTION;
+			return lua_type(L, stackPos) == LuaTypes.LUA_TFUNCTION;
 		}
 
 		public static bool lua_islightuserdata(IntPtr L, int stackPos)

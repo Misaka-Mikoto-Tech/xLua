@@ -7,27 +7,25 @@
 local unpack = unpack or table.unpack
 
 local function async_to_sync(async_func, callback_pos)
-    return function(...) -- CS.UnityEngine.WaitForSeconds(3)
+    return function(...)
         local _co = coroutine.running() or error ('this function must be run in coroutine')
         local rets
         local waiting = false
-        local function cb_func(...) -- C# 端的函数执行完毕调用此回调后才执行 resume
+        local function cb_func(...)
             if waiting then
-                -- 会立刻去执行 co,直到对方 coroutine.yield 或者 return
                 assert(coroutine.resume(_co, ...))
             else
                 rets = {...}
             end
         end
         local params = {...}
-        -- 把 cb_func 放在参数尾部
         table.insert(params, callback_pos or (#params + 1), cb_func)
-        -- 执行 async_yield_return，两个参数, 第二个参数是C#执行完后的回调
         async_func(unpack(params))
         if rets == nil then
             waiting = true
-            rets = {coroutine.yield()} -- 执行后立刻释放控制权
+            rets = {coroutine.yield()}
         end
+        
         return unpack(rets)
     end
 end
@@ -79,13 +77,7 @@ local function loadpackage(...)
 end
 
 local function auto_id_map()
-    local hotfix_id_map = loadfile('hotfix_id_map')
-    if hotfix_id_map == nil then
-        return false
-    else
-        hotfix_id_map = hotfix_id_map()
-    end
-    
+    local hotfix_id_map = require 'hotfix_id_map'
     local org_hotfix = xlua.hotfix
     xlua.hotfix = function(cs, field, func)
         local map_info_of_type = hotfix_id_map[typeof(cs):ToString()]
@@ -104,8 +96,6 @@ local function auto_id_map()
             return org_hotfix(cs, field, func)
         end
     end
-    
-    return true
 end
 
 --和xlua.hotfix的区别是：这个可以调用原来的函数
