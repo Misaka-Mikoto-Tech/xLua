@@ -106,6 +106,11 @@ namespace CSObjectWrapEditor
     {
 
     }
+	
+	public class AutoIdMapPathAttribute : Attribute
+    {
+
+    }
 
     public struct XLuaTemplate
     {
